@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maestro</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- VexFlow 4.2.2 -->
+    <script src="https://unpkg.com/vexflow@4.2.2/releases/vexflow-debug.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .font-lobster {
+            font-family: 'Lobster', cursive;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(2, 136, 209, 0.5);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(2, 136, 209, 0.7);
+        }
+
+        /* Animation utilities */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            header,
+            .controls-panel,
+            .print-hidden {
+                display: none !important;
+            }
+
+            #printable-score-container {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                background: white !important;
+                overflow: visible !important;
+            }
+
+            svg text {
+                fill: black !important;
+            }
+        }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "vexflow": "https://aistudiocdn.com/vexflow@^5.0.0"
+  }
+}
+</script>
+</head>
+
+<body
+    class="min-h-screen w-full flex flex-col text-slate-700 overflow-hidden selection:bg-pink-200 selection:text-pink-900"
+    style="background: linear-gradient(135deg, #4fc3f7, #0288d1);">
+
+    <!-- Header -->
+    <header class="controls-panel shrink-0 w-full max-w-7xl mx-auto p-4 flex justify-end items-center z-20">
+        <!-- Branding Removed as requested -->
+        <button onclick="window.print()"
+            class="flex items-center gap-2 bg-gradient-to-r from-[#29b6f6] to-[#0288d1] hover:brightness-105 text-white font-lobster text-lg px-6 py-2 rounded-full shadow-[0_5px_15px_rgba(2,136,209,0.3)] transition-transform hover:-translate-y-0.5 active:translate-y-0">
+            <i data-lucide="printer" class="w-5 h-5"></i>
+            <span>Imprimir</span>
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main
+        class="flex-1 flex flex-col lg:flex-row gap-6 p-4 lg:px-8 lg:pb-8 max-w-[1600px] mx-auto w-full overflow-hidden">
+
+        <!-- Left Panel: Controls -->
+        <div class="controls-panel w-full lg:w-[350px] shrink-0 flex flex-col gap-6 z-10 h-full overflow-hidden">
+
+            <!-- Navigation Tabs -->
+            <div class="flex bg-white/40 p-1.5 rounded-full backdrop-blur-sm shadow-sm border border-white/30">
+                <button id="tab-editor" onclick="setTab('editor')"
+                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-lg font-lobster transition-all duration-300 bg-white text-[#0288d1] shadow-md scale-100">
+                    <i data-lucide="type" class="w-5 h-5"></i> Editor
+                </button>
+                <button id="tab-guide" onclick="setTab('guide')"
+                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-lg font-lobster transition-all duration-300 text-white hover:bg-white/20">
+                    <i data-lucide="book-open" class="w-5 h-5"></i> Guia
+                </button>
+            </div>
+
+            <!-- Panel Body -->
+            <div
+                class="flex-1 bg-[rgba(255,255,255,0.95)] backdrop-blur rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border-4 border-white/50 p-6 flex flex-col overflow-y-auto custom-scrollbar">
+
+                <!-- Editor View -->
+                <div id="view-editor" class="flex flex-col gap-6 h-full fade-in">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold text-[#0288d1] uppercase tracking-widest ml-1">Título da
+                            Música</label>
+                        <input type="text" id="input-title" value="Peixe Vivo"
+                            class="w-full font-lobster text-2xl px-5 py-3 bg-[#f1f8ff] border-2 border-[#e1f5fe] text-[#01579b] rounded-2xl focus:outline-none focus:border-[#039be5] focus:ring-4 focus:ring-[#e1f5fe] transition-all placeholder-blue-200"
+                            placeholder="Digite o título...">
+                    </div>
+
+                    <div class="flex flex-col gap-2 flex-1 min-h-[300px]">
+                        <div class="flex justify-between items-center ml-1">
+                            <label class="text-xs font-bold text-[#0288d1] uppercase tracking-widest">Notas
+                                Musicais</label>
+                            <button onclick="clearEditor()"
+                                class="text-xs font-bold text-red-400 hover:text-red-500 uppercase tracking-widest flex items-center gap-1 transition-colors">
+                                <i data-lucide="eraser" class="w-3 h-3"></i> Limpar
+                            </button>
+                        </div>
+                        <textarea id="input-notation" spellcheck="false"
+                            class="w-full flex-1 bg-[#f1f8ff] text-slate-600 p-5 rounded-2xl border-2 border-[#e1f5fe] focus:border-[#039be5] focus:ring-4 focus:ring-[#e1f5fe] focus:outline-none font-mono text-sm leading-loose resize-none shadow-inner transition-all"
+                            placeholder="Ex: C4/q D4/q E4/q...">C4/q D4/q E4/q F4/q G4/q A4/q B4/q C5/q
+C4/q D4/q E4/q F4/q G4/h E4/q C4/q
+R/q G4/q G4/8 F4/8 E4/q F4/q G4/q
+C5/q B4/q A4/q G4/q F4/q E4/q D4/q C4/q</textarea>
+                        <p class="text-xs text-slate-400 font-medium ml-1">
+                            Dica: Use C, D, E, F, G, A, B para notas e R para pausas.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Guide View -->
+                <div id="view-guide" class="hidden flex-col gap-8 fade-in">
+                    <!-- Colors -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-[#e91e63] border-b-2 border-[#fce4ec] pb-2">
+                            <div class="p-1.5 bg-[#fce4ec] rounded-lg"><i data-lucide="type" class="w-4 h-4"></i></div>
+                            <span class="text-sm font-bold uppercase tracking-widest">Cores das Notas</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-xl bg-purple-100 border border-white/50 shadow-sm">
+                                <div class="w-6 h-6 rounded-full shadow-inner border-2 border-white/50 bg-[#9c27b0]">
+                                </div><span class="text-sm font-bold text-slate-600">C (Dó)</span>
+                            </div>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-xl bg-sky-100 border border-white/50 shadow-sm">
+                                <div class="w-6 h-6 rounded-full shadow-inner border-2 border-white/50 bg-[#03a9f4]">
+                                </div><span class="text-sm font-bold text-slate-600">D (Ré)</span>
+                            </div>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-xl bg-pink-100 border border-white/50 shadow-sm">
+                                <div class="w-6 h-6 rounded-full shadow-inner border-2 border-white/50 bg-[#e91e63]">
+                                </div><span class="text-sm font-bold text-slate-600">E (Mi)</span>
+                            </div>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-xl bg-green-100 border border-white/50 shadow-sm">
+                                <div class="w-6 h-6 rounded-full shadow-inner border-2 border-white/50 bg-[#4caf50]">
+                                </div><span class="text-sm font-bold text-slate-600">F (Fá)</span>
+                            </div>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-xl bg-yellow-100 border border-white/50 shadow-sm">
+                                <div class="w-6 h-6 rounded-full shadow-inner border-2 border-white/50 bg-[#ffeb3b]">
+                                </div><span class="text-sm font-bold text-slate-600">G (Sol)</span>
+                            </div>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-xl bg-orange-100 border border-white/50 shadow-sm">
+                                <div class="w-6 h-6 rounded-full shadow-inner border-2 border-white/50 bg-[#ff9800]">
+                                </div><span class="text-sm font-bold text-slate-600">A (Lá)</span>
+                            </div>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-xl bg-red-100 border border-white/50 shadow-sm">
+                                <div class="w-6 h-6 rounded-full shadow-inner border-2 border-white/50 bg-[#f44336]">
+                                </div><span class="text-sm font-bold text-slate-600">B (Si)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rhythms -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-[#009688] border-b-2 border-[#e0f2f1] pb-2">
+                            <div class="p-1.5 bg-[#e0f2f1] rounded-lg"><i data-lucide="book-open" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-sm font-bold uppercase tracking-widest">Figuras Rítmicas</span>
+                        </div>
+                        <div class="rounded-xl border-2 border-[#e0f2f1] overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead class="bg-[#e0f2f1] text-[#00695c] uppercase text-xs font-bold">
+                                    <tr>
+                                        <th class="px-3 py-3 text-left">Símbolo</th>
+                                        <th class="px-3 py-3 text-left">Nome</th>
+                                        <th class="px-3 py-3 text-center">Nota</th>
+                                        <th class="px-3 py-3 text-center">Pausa</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    <tr>
+                                        <td class="px-3 py-2 text-2xl text-center text-slate-600">𝅝</td>
+                                        <td class="px-3 py-2 font-medium text-slate-700">Semibreve</td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">w</code>
+                                        </td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold border border-slate-200">wr</code>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-slate-50/50">
+                                        <td class="px-3 py-2 text-2xl text-center text-slate-600">𝅗𝅥</td>
+                                        <td class="px-3 py-2 font-medium text-slate-700">Mínima</td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">h</code>
+                                        </td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold border border-slate-200">hr</code>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-3 py-2 text-2xl text-center text-slate-600">♩</td>
+                                        <td class="px-3 py-2 font-medium text-slate-700">Semínima</td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">q</code>
+                                        </td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold border border-slate-200">qr</code>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-slate-50/50">
+                                        <td class="px-3 py-2 text-2xl text-center text-slate-600">♪</td>
+                                        <td class="px-3 py-2 font-medium text-slate-700">Colcheia</td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">8</code>
+                                        </td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold border border-slate-200">8r</code>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-3 py-2 text-2xl text-center text-slate-600">𝅘𝅥𝅯</td>
+                                        <td class="px-3 py-2 font-medium text-slate-700">Semicolcheia</td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold border border-blue-100">16</code>
+                                        </td>
+                                        <td class="px-3 py-2 text-center"><code
+                                                class="bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold border border-slate-200">16r</code>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bg-[#fff3e0] p-4 rounded-xl border-2 border-[#ffe0b2] text-[#ef6c00]">
+                            <h4 class="font-lobster text-lg mb-1">Dica Secreta!</h4>
+                            <p class="text-sm font-medium">Adicione <code
+                                    class="bg-white px-1.5 py-0.5 rounded border border-[#ffcc80]">d</code> na duração
+                                para nota pontuada.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Preview -->
+        <div class="flex-1 flex flex-col min-w-0 relative z-10">
+            <!-- Background decoration -->
+            <div
+                class="absolute top-0 right-0 left-0 h-12 bg-white/20 rounded-t-[2rem] translate-y-4 scale-[0.98] -z-10">
+            </div>
+
+            <div
+                class="flex-1 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.25)] overflow-hidden flex flex-col border-4 border-white">
+                <div class="bg-slate-50 border-b border-slate-100 p-3 px-6 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-400"></span> Visualização A4
+                    </span>
+                    <span class="text-xs font-mono text-slate-300">210mm x 297mm</span>
+                </div>
+
+                <div
+                    class="flex-1 overflow-auto custom-scrollbar bg-slate-100/50 p-8 lg:p-12 flex justify-center items-start relative">
+
+                    <!-- Error Message -->
+                    <div id="error-message"
+                        class="hidden absolute top-6 left-1/2 -translate-x-1/2 z-20 bg-red-500 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 animate-bounce font-bold text-sm">
+                        <span>⚠️ <span id="error-text"></span></span>
+                    </div>
+
+                    <!-- Printable Container -->
+                    <div id="printable-score-container"
+                        class="bg-white shadow-2xl relative transition-transform duration-300 origin-top"
+                        style="width: 794px; min-height: 1123px;">
+                        <div id="score-output" class="w-full h-full"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Removed -->
+
+    <!-- Application Logic -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Constants
+        const A4_WIDTH = 794;
+        const A4_HEIGHT = 1123;
+        const MARGIN_X = 60;
+        const TOP_PADDING = 150;
+        const STAVE_VERTICAL_SPACING = 160;
+        const MEASURES_PER_LINE = 3;
+
+        const NOTE_COLORS = {
+            'c': "#9c27b0",
+            'd': "#03a9f4",
+            'e': "#e91e63",
+            'f': "#4caf50",
+            'g': "#ffeb3b",
+            'a': "#ff9800",
+            'b': "#f44336"
+        };
+
+        // UI Elements
+        const inputTitle = document.getElementById('input-title');
+        const inputNotation = document.getElementById('input-notation');
+        const scoreOutput = document.getElementById('score-output');
+        const errorMsg = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+
+        // Logic: Tab Switching
+        window.setTab = function (tab) {
+            const btnEditor = document.getElementById('tab-editor');
+            const btnGuide = document.getElementById('tab-guide');
+            const viewEditor = document.getElementById('view-editor');
+            const viewGuide = document.getElementById('view-guide');
+
+            if (tab === 'editor') {
+                btnEditor.className = "flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-lg font-lobster transition-all duration-300 bg-white text-[#0288d1] shadow-md scale-100";
+                btnGuide.className = "flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-lg font-lobster transition-all duration-300 text-white hover:bg-white/20";
+                viewEditor.classList.remove('hidden');
+                viewGuide.classList.add('hidden');
+                viewGuide.classList.remove('flex');
+            } else {
+                btnEditor.className = "flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-lg font-lobster transition-all duration-300 text-white hover:bg-white/20";
+                btnGuide.className = "flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-lg font-lobster transition-all duration-300 bg-white text-[#4caf50] shadow-md scale-100";
+                viewEditor.classList.add('hidden');
+                viewGuide.classList.remove('hidden');
+                viewGuide.classList.add('flex');
+            }
+        }
+
+        // Logic: Clear Editor
+        window.clearEditor = function () {
+            inputNotation.value = '';
+            inputTitle.value = 'Sem Título';
+            render();
+        }
+
+        // Helper: Colors
+        function getNoteColor(key) {
+            if (!key) return "#000000";
+            const noteName = key.charAt(0).toLowerCase();
+            return NOTE_COLORS[noteName] || "#000000";
+        }
+
+        // Helper: Rhythm
+        function getBeats(duration, dot = false) {
+            const d = duration.replace('r', '');
+            let val = 1;
+            if (d === 'w') val = 4;
+            else if (d === 'h') val = 2;
+            else if (d === 'q') val = 1;
+            else if (d === '8') val = 0.5;
+            else if (d === '16') val = 0.25;
+            else if (d === '32') val = 0.125;
+            if (dot) val *= 1.5;
+            return val;
+        }
+
+        // Logic: Parser
+        function parseMusicString(input) {
+            const tokens = input.trim().split(/\s+/).filter(t => t.length > 0);
+            const validDurations = ['w', 'h', 'q', '8', '16', '32', 'wr', 'hr', 'qr', '8r', '16r', '32r'];
+
+            return tokens.map(token => {
+                let keys = ["c/4"];
+                let duration = "q";
+                let accidental = undefined;
+                let dot = false;
+
+                const parts = token.split('/');
+                if (parts.length > 0 && parts[0] !== "") {
+                    const keyPart = parts[0];
+                    if (keyPart.toLowerCase() === 'r') {
+                        keys = ["b/4"];
+                        duration = parts[1] ? parts[1] + "r" : "qr";
+                    } else {
+                        const match = keyPart.match(/^([a-gA-G])([#b]?)(\d?)$/);
+                        if (match) {
+                            const noteName = match[1].toLowerCase();
+                            const acc = match[2];
+                            const octave = match[3] || "4";
+                            keys = [`${noteName}${acc}/${octave}`];
+                            if (acc) accidental = acc;
+                        }
+                    }
+                }
+                if (parts.length > 1) {
+                    let durPart = parts[1];
+                    if (durPart.includes('d')) {
+                        dot = true;
+                        durPart = durPart.replace('d', '');
+                    }
+                    if (keys[0] === "b/4" && !durPart.endsWith('r')) {
+                        duration = durPart + "r";
+                    } else {
+                        duration = durPart;
+                    }
+                }
+                return { keys, duration, accidental, dot, isValid: validDurations.includes(duration) };
+            }).filter(n => n.isValid);
+        }
+
+        // Logic: Render (VexFlow)
+        function render() {
+            const notation = inputNotation.value;
+            const title = inputTitle.value;
+
+            scoreOutput.innerHTML = '';
+            errorMsg.classList.add('hidden');
+
+            try {
+                const parsedNotes = parseMusicString(notation);
+                const VF = Vex.Flow;
+
+                // Group Measures
+                const measures = [];
+                let currentMeasure = [];
+                let currentBeats = 0;
+                const BEATS_PER_MEASURE = 4;
+
+                parsedNotes.forEach((note) => {
+                    const noteBeats = getBeats(note.duration, note.dot);
+                    if (currentBeats + noteBeats > BEATS_PER_MEASURE + 0.01) {
+                        measures.push(currentMeasure);
+                        currentMeasure = [];
+                        currentBeats = 0;
+                    }
+                    currentMeasure.push(note);
+                    currentBeats += noteBeats;
+                });
+                if (currentMeasure.length > 0) measures.push(currentMeasure);
+                // Handle empty
+                if (measures.length === 0) measures.push([{ keys: ["b/4"], duration: "wr", dot: false }]);
+
+                // Calculate Layout
+                const numLines = Math.ceil(measures.length / MEASURES_PER_LINE);
+                const contentHeight = TOP_PADDING + (numLines * STAVE_VERTICAL_SPACING) + 100;
+                const finalHeight = Math.max(A4_HEIGHT, contentHeight);
+
+                // Init VexFlow Renderer
+                const renderer = new VF.Renderer(scoreOutput, VF.Renderer.Backends.SVG);
+                renderer.resize(A4_WIDTH, finalHeight);
+                const ctx = renderer.getContext();
+
+                // Draw Title
+                ctx.save();
+                ctx.setFont("Lobster", 60, "normal");
+                ctx.setFillStyle("#0288d1");
+                const text = title || "Sem Título";
+                let textWidth = text.length * 30;
+                try { textWidth = ctx.measureText(text).width; } catch (e) { }
+                ctx.fillText(text, (A4_WIDTH - textWidth) / 2, 100);
+                ctx.restore();
+
+                // Draw Footer (Brand removed as requested)
+                ctx.save();
+                ctx.setFont("Poppins", 12, "normal");
+                ctx.setFillStyle("#999999");
+                ctx.fillText("Criado com Maestro", MARGIN_X, finalHeight - 40);
+                ctx.restore();
+
+                // Loop and Draw Measures
+                const STAVE_WIDTH = (A4_WIDTH - (MARGIN_X * 2)) / MEASURES_PER_LINE;
+
+                measures.forEach((measureNotes, index) => {
+                    const lineIndex = Math.floor(index / MEASURES_PER_LINE);
+                    const measureIndexInLine = index % MEASURES_PER_LINE;
+                    const x = MARGIN_X + (measureIndexInLine * STAVE_WIDTH);
+                    const y = TOP_PADDING + (lineIndex * STAVE_VERTICAL_SPACING);
+
+                    const stave = new VF.Stave(x, y, STAVE_WIDTH);
+                    if (measureIndexInLine === 0) stave.addClef("treble");
+                    if (index === 0) stave.addTimeSignature("4/4");
+                    stave.setContext(ctx).draw();
+
+                    const vexNotes = measureNotes.map(pn => {
+                        const note = new VF.StaveNote({
+                            keys: pn.keys,
+                            duration: pn.duration,
+                            auto_stem: true,
+                        });
+                        if (pn.accidental) note.addModifier(new VF.Accidental(pn.accidental));
+                        if (pn.dot) note.addModifier(new VF.Dot());
+
+                        if (pn.keys[0] !== "b/4") {
+                            const color = getNoteColor(pn.keys[0]);
+                            note.setStyle({ fillStyle: color, strokeStyle: color });
+                        } else {
+                            note.setStyle({ fillStyle: "#666666", strokeStyle: "#666666" });
+                        }
+                        return note;
+                    });
+
+                    const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+                    voice.setStrict(false);
+                    voice.addTickables(vexNotes);
+
+                    const formatter = new VF.Formatter();
+                    const availableWidth = STAVE_WIDTH - (measureIndexInLine === 0 ? 50 : 10);
+                    formatter.joinVoices([voice]).format([voice], availableWidth);
+
+                    voice.draw(ctx, stave);
+
+                    const beams = VF.Beam.generateBeams(vexNotes);
+                    beams.forEach(beam => {
+                        beam.setStyle({ fillStyle: "#333333", strokeStyle: "#333333" });
+                        beam.setContext(ctx).draw();
+                    });
+                });
+
+            } catch (e) {
+                console.error(e);
+                errorText.innerText = "Erro na sintaxe musical.";
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        // Initialize
+        inputTitle.addEventListener('input', render);
+        inputNotation.addEventListener('input', render);
+        window.addEventListener('load', render);
+    </script>
+</body>
+
+</html>

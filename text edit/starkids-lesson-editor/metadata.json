@@ -1,0 +1,5 @@
+{
+  "name": "Starkids Lesson Editor",
+  "description": "A rich-text editor for creating music lessons with Starkids branding, featuring PDF export and custom styling.",
+  "requestFramePermissions": []
+}
