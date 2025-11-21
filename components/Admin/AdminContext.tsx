@@ -173,7 +173,20 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [features, setFeatures] = useState<FeatureToggles>(defaultFeatures);
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [users, setUsers] = useState<User[]>([]);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    
+    // Initialize with a default Admin user so the app is always "logged in"
+    const defaultAdminUser: User = {
+        id: 'default-admin',
+        name: 'Starkids Studio',
+        email: 'studio@starkids.com',
+        instrumento: 'Piano',
+        role: 'Admin',
+        password: '',
+        permissions: createDefaultPermissions('Admin')
+    };
+
+    const [currentUser, setCurrentUser] = useState<User | null>(defaultAdminUser);
+    
     const [theme, setThemeState] = useState<ThemeConfig>({
         primaryColor: '#0ea5e9',
         secondaryColor: '#8b5cf6',
@@ -193,7 +206,6 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const savedFeatures = localStorage.getItem('starkids_features');
         const savedLessons = localStorage.getItem('starkids_lessons');
         const savedUsers = localStorage.getItem('starkids_users');
-        const savedSession = localStorage.getItem('starkids_session');
         const savedTheme = localStorage.getItem('starkids_theme');
 
         if (savedMsg) {
@@ -218,32 +230,8 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         if (savedUsers) {
             try {
                 let parsedUsers: User[] = JSON.parse(savedUsers);
-                const alexEmail = 'Alexandredsribeiro7@gmail.com';
-                const alexIndex = parsedUsers.findIndex(u => u.email.toLowerCase() === alexEmail.toLowerCase());
-                const alexUser: User = {
-                    id: 'admin-alexandre',
-                    name: 'Alexandre Ribeiro',
-                    email: alexEmail,
-                    instrumento: 'Piano',
-                    role: 'Admin',
-                    password: 'admin123',
-                    permissions: createDefaultPermissions('Admin')
-                };
-                if (alexIndex >= 0) {
-                    parsedUsers[alexIndex] = { ...parsedUsers[alexIndex], ...alexUser };
-                } else {
-                    parsedUsers = [alexUser, ...parsedUsers];
-                }
-                localStorage.setItem('starkids_users', JSON.stringify(parsedUsers));
+                // Ensure we have users loaded, but we don't need to force login
                 setUsers(parsedUsers);
-                if (savedSession) {
-                    try {
-                        const sessionUser = JSON.parse(savedSession);
-                        const exists = parsedUsers.find(u => u.id === sessionUser.id);
-                        if (exists) setCurrentUser(sessionUser);
-                        else localStorage.removeItem('starkids_session');
-                    } catch (e) { console.error(e); }
-                }
             } catch (e) { console.error(e); }
         } else {
             const mockUsers: User[] = [
@@ -255,33 +243,6 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                     role: 'Admin',
                     password: 'admin123',
                     permissions: createDefaultPermissions('Admin')
-                },
-                {
-                    id: '1',
-                    name: 'Ana Silva',
-                    email: 'ana.silva@starkids.com',
-                    instrumento: 'Piano',
-                    role: 'Admin',
-                    password: 'admin123',
-                    permissions: createDefaultPermissions('Admin')
-                },
-                {
-                    id: '2',
-                    name: 'João Santos',
-                    email: 'joao.santos@starkids.com',
-                    instrumento: 'Violão',
-                    role: 'Aluno',
-                    password: 'joao123',
-                    permissions: createDefaultPermissions('Aluno')
-                },
-                {
-                    id: '3',
-                    name: 'Maria Oliveira',
-                    email: 'maria.oliveira@starkids.com',
-                    instrumento: 'Piano',
-                    role: 'Aluno',
-                    password: 'maria123',
-                    permissions: createDefaultPermissions('Aluno')
                 }
             ];
             setUsers(mockUsers);
@@ -369,23 +330,12 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         });
     };
 
-    // Authentication
+    // Authentication - Mocked to always return true/do nothing since we are always logged in
     const login = (email: string, password: string): boolean => {
-        const saved = localStorage.getItem('starkids_users');
-        if (!saved) return false;
-        let list: User[] = [];
-        try { list = JSON.parse(saved); } catch (e) { console.error(e); return false; }
-        const user = list.find(u => u.email.toLowerCase().trim() === email.toLowerCase().trim());
-        if (!user) return false;
-        const pwd = user.password || '1234';
-        if (password.trim() !== pwd) return false;
-        setCurrentUser(user);
-        localStorage.setItem('starkids_session', JSON.stringify(user));
         return true;
     };
     const logout = () => {
-        setCurrentUser(null);
-        localStorage.removeItem('starkids_session');
+        // No-op: cannot logout
     };
 
     // Theme actions

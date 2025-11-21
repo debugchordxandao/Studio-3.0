@@ -18,7 +18,7 @@ import { PianoGenerator } from './components/PianoGenerator';
 import { GuitarGenerator } from './components/GuitarGenerator';
 import { ScaleGenerator } from './components/ScaleGenerator';
 import { SheetMusicGenerator } from './components/SheetMusicGenerator';
-import { LoginScreen } from './pages/LoginScreen';
+
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { SystemBanner } from './components/Admin/SystemBanner';
 import { useAdmin } from './components/Admin/AdminContext';
@@ -69,10 +69,7 @@ const App: React.FC = () => {
 
   const { features, currentUser, logout } = useAdmin();
 
-  // If not authenticated, show login screen
-  if (!currentUser) {
-    return <LoginScreen />;
-  }
+
 
   // If admin wants to access dashboard
   if (showAdminDashboard && currentUser.role === 'Admin') {
