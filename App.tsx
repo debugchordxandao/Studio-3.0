@@ -1,45 +1,52 @@
-import React, { useState, Suspense } from "react";
-import { Login } from "./components/Login";
+import React, { useState, Suspense } from 'react';
 import {
   Music,
   Guitar,
-  ListMusic,
-  FileMusic,
-  Palette,
-  Mic,
-  Loader2,
   FileText,
-} from "lucide-react";
-import { STARKIDS_LOGO_URL } from "./constants";
+  Mic,
+  BookOpen,
+  PenTool,
+  User,
+  Gamepad2,
+  Menu,
+  X,
+  Edit3,
+  LogOut,
+  ChevronDown
+} from 'lucide-react';
+import { PianoGenerator } from './components/PianoGenerator';
+import { GuitarGenerator } from './components/GuitarGenerator';
+import { ScaleGenerator } from './components/ScaleGenerator';
+import { SheetMusicGenerator } from './components/SheetMusicGenerator';
+import { LoginScreen } from './pages/LoginScreen';
+import { AdminDashboard } from './components/Admin/AdminDashboard';
+import { SystemBanner } from './components/Admin/SystemBanner';
+import { useAdmin } from './components/Admin/AdminContext';
+import { LessonFeed } from './components/LessonFeed';
+import { LessonEditor } from './components/LessonEditor';
+import { CifraCreator } from './components/CifraCreator';
+import { NewLessonEditor } from './components/NewLessonEditor';
+import { Footer } from './components/Footer';
 
-// Lazy load components for better performance
-const PianoGenerator = React.lazy(() =>
-  import("./components/PianoGenerator").then((module) => ({
-    default: module.PianoGenerator,
+// Lazy load new components
+const IdGenerator = React.lazy(() =>
+  import("./components/IdGenerator").then((module) => ({
+    default: module.IdGenerator,
   }))
 );
-const ScaleGenerator = React.lazy(() =>
-  import("./components/ScaleGenerator").then((module) => ({
-    default: module.ScaleGenerator,
+const ChordQuiz = React.lazy(() =>
+  import("./components/ChordQuiz").then((module) => ({
+    default: module.ChordQuiz,
   }))
 );
-const SheetMusicGenerator = React.lazy(() =>
-  import("./components/SheetMusicGenerator").then((module) => ({
-    default: module.SheetMusicGenerator,
-  }))
-);
-const LessonEditor = React.lazy(() =>
-  import("./components/LessonEditor").then((module) => ({
-    default: module.LessonEditor,
-  }))
-);
-const GuitarGenerator = React.lazy(() =>
-  import("./components/GuitarGenerator").then((module) => ({
-    default: module.GuitarGenerator,
+const MemoryGame = React.lazy(() =>
+  import("./components/MemoryGame").then((module) => ({
+    default: module.MemoryGame,
   }))
 );
 
 enum Tab {
+  NEW_LESSON_EDITOR = "NEW_LESSON_EDITOR",
   PIANO = "PIANO",
   GUITAR = "GUITAR",
   SCALES = "SCALES",
@@ -47,199 +54,345 @@ enum Tab {
   DESIGN = "DESIGN",
   PODCASTS = "PODCASTS",
   LESSON_EDITOR = "LESSON_EDITOR",
+  OLD_LESSON_EDITOR = "OLD_LESSON_EDITOR",
+  CIFRA_CREATOR = "CIFRA_CREATOR",
+  MEMORY_GAME = "MEMORY_GAME",
+  ID_GENERATOR = "ID_GENERATOR",
+  CHORD_QUIZ = "CHORD_QUIZ",
 }
 
-const LoadingSpinner = () => (
-  <div className="w-full h-[60vh] flex flex-col items-center justify-center text-sky-500">
-    <Loader2 className="w-12 h-12 animate-spin mb-4" />
-    <p className="font-lobster text-xl">Carregando...</p>
-  </div>
-);
-
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>(Tab.LESSON_EDITOR);
+  const [activeTab, setActiveTab] = useState<Tab>(Tab.PIANO);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
-  if (!isAuthenticated) {
-    return <Login onLogin={() => setIsAuthenticated(true)} />;
+  const { features, currentUser, logout } = useAdmin();
+
+  // If not authenticated, show login screen
+  if (!currentUser) {
+    return <LoginScreen />;
   }
 
+  // If admin wants to access dashboard
+  if (showAdminDashboard && currentUser.role === 'Admin') {
+    return (
+      <AdminDashboard onLogout={() => {
+        setShowAdminDashboard(false);
+      }} />
+    );
+  }
+
+  const handleLogout = () => {
+    logout();
+    setIsProfileMenuOpen(false);
+  };
+
   return (
-    <div className="min-h-screen w-full flex flex-col font-sans text-slate-700 selection:bg-yellow-200">
-      {/* Studio Header */}
-      <nav className="bg-white/95 backdrop-blur-sm border-b-4 border-sky-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
-            {/* Brand - Big & Fun */}
-            <div
-              className="flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform duration-300"
-              onClick={() => window.location.reload()}
-            >
-              <div className="relative">
-                <div className="absolute inset-0 bg-yellow-300 rounded-full blur opacity-50 animate-pulse"></div>
-                <img
-                  src={STARKIDS_LOGO_URL}
-                  alt="Starkids Logo"
-                  className="relative h-20 w-auto drop-shadow-md"
-                />
-              </div>
-              <div className="flex flex-col">
-                <h1 className="font-lobster text-4xl text-sky-500 drop-shadow-sm tracking-wide">
-                  Starkids
-                </h1>
-                <span className="text-xs font-bold tracking-[0.3em] text-yellow-500 uppercase ml-1">
-                  Studio
-                </span>
-              </div>
+    <div className="min-h-screen w-full flex flex-col font-sans text-slate-700 selection:bg-yellow-200 bg-pattern">
+      <SystemBanner />
+
+      {/* --- HEADER --- */}
+      <header className="fixed top-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-md border-b border-white/20 shadow-sm z-50 px-6 flex items-center justify-between">
+
+        {/* Logo & Mobile Menu Toggle */}
+        <div className="flex items-center gap-4 flex-none w-auto">
+          <button
+            className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab(Tab.PIANO)}>
+            <img src="/starkids_logo_hd.png" alt="Starkids Studio" className="h-14 w-auto" />
+            <div className="leading-tight">
+              <h1 className="font-lobster text-2xl text-transparent bg-clip-text bg-gradient-to-r from-sky-600 to-purple-600">
+                Starkids
+              </h1>
+              <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">Studio</p>
             </div>
-
-            {/* Navigation */}
-            <div className="flex items-center gap-2 bg-sky-50 p-2 rounded-2xl border-2 border-sky-100 flex-wrap justify-center">
-              <button
-                onClick={() => setActiveTab(Tab.LESSON_EDITOR)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl font-lobster text-sm md:text-base transition-all duration-200 border-b-4 active:border-b-0 active:translate-y-1 whitespace-nowrap ${activeTab === Tab.LESSON_EDITOR
-                  ? "bg-orange-400 border-orange-600 text-white shadow-lg"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-orange-400 hover:border-orange-200"
-                  }`}
-              >
-                <FileText
-                  size={18}
-                  className={activeTab === Tab.LESSON_EDITOR ? "animate-bounce" : ""}
-                />
-                Aulas
-              </button>
-
-              <button
-                onClick={() => setActiveTab(Tab.PIANO)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl font-lobster text-sm md:text-base transition-all duration-200 border-b-4 active:border-b-0 active:translate-y-1 whitespace-nowrap ${activeTab === Tab.PIANO
-                  ? "bg-sky-400 border-sky-600 text-white shadow-lg"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-sky-400 hover:border-sky-200"
-                  }`}
-              >
-                <Music
-                  size={18}
-                  className={activeTab === Tab.PIANO ? "animate-bounce" : ""}
-                />
-                Piano
-              </button>
-
-              <button
-                onClick={() => setActiveTab(Tab.GUITAR)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl font-lobster text-sm md:text-base transition-all duration-200 border-b-4 active:border-b-0 active:translate-y-1 whitespace-nowrap ${activeTab === Tab.GUITAR
-                  ? "bg-orange-400 border-orange-600 text-white shadow-lg"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-orange-400 hover:border-orange-200"
-                  }`}
-              >
-                <Guitar
-                  size={18}
-                  className={activeTab === Tab.GUITAR ? "animate-bounce" : ""}
-                />
-                Guitarra
-              </button>
-
-              <button
-                onClick={() => setActiveTab(Tab.SCALES)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl font-lobster text-sm md:text-base transition-all duration-200 border-b-4 active:border-b-0 active:translate-y-1 whitespace-nowrap ${activeTab === Tab.SCALES
-                  ? "bg-purple-400 border-purple-600 text-white shadow-lg"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-purple-400 hover:border-purple-200"
-                  }`}
-              >
-                <ListMusic
-                  size={18}
-                  className={activeTab === Tab.SCALES ? "animate-bounce" : ""}
-                />
-                Escalas
-              </button>
-
-              <button
-                onClick={() => setActiveTab(Tab.SHEET_MUSIC)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl font-lobster text-sm md:text-base transition-all duration-200 border-b-4 active:border-b-0 active:translate-y-1 whitespace-nowrap ${activeTab === Tab.SHEET_MUSIC
-                  ? "bg-pink-400 border-pink-600 text-white shadow-lg"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-pink-400 hover:border-pink-200"
-                  }`}
-              >
-                <FileMusic
-                  size={18}
-                  className={activeTab === Tab.SHEET_MUSIC ? "animate-bounce" : ""}
-                />
-                Partituras
-              </button>
-
-              <button
-                onClick={() => setActiveTab(Tab.DESIGN)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl font-lobster text-sm md:text-base transition-all duration-200 border-b-4 active:border-b-0 active:translate-y-1 whitespace-nowrap ${activeTab === Tab.DESIGN
-                  ? "bg-orange-400 border-orange-600 text-white shadow-lg"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-orange-400 hover:border-orange-200"
-                  }`}
-              >
-                <Palette
-                  size={18}
-                  className={activeTab === Tab.DESIGN ? "animate-bounce" : ""}
-                />
-                Design
-              </button>
-
-              <button
-                onClick={() => setActiveTab(Tab.PODCASTS)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-xl font-lobster text-sm md:text-base transition-all duration-200 border-b-4 active:border-b-0 active:translate-y-1 whitespace-nowrap ${activeTab === Tab.PODCASTS
-                  ? "bg-indigo-400 border-indigo-600 text-white shadow-lg"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-indigo-400 hover:border-indigo-200"
-                  }`}
-              >
-                <Mic
-                  size={18}
-                  className={activeTab === Tab.PODCASTS ? "animate-bounce" : ""}
-                />
-                Podcasts
-              </button>
-
-
-            </div>
-
-            {/* Empty div to balance flex layout */}
-            <div className="hidden lg:block w-20"></div>
           </div>
         </div>
-      </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-grow w-full mx-auto p-4 md:p-10 flex flex-col items-center">
-        <div className="w-full animate-fade-in-up">
-          <Suspense fallback={<LoadingSpinner />}>
-            {activeTab === Tab.PIANO && <PianoGenerator />}
-            {activeTab === Tab.GUITAR && <GuitarGenerator />}
-            {activeTab === Tab.SCALES && <ScaleGenerator />}
-            {activeTab === Tab.SHEET_MUSIC && <SheetMusicGenerator />}
-            {activeTab === Tab.LESSON_EDITOR && <LessonEditor />}
-          </Suspense>
-          {activeTab === Tab.DESIGN && (
-            <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-3xl p-8 shadow-xl border-4 border-orange-100">
-              <img
-                src="sleeping_star.png"
-                alt="Em desenvolvimento"
-                className="h-64 w-auto mb-6"
+        {/* Desktop Navigation */}
+        <nav className="hidden lg:flex flex-1 justify-center items-center px-4 max-w-5xl">
+          <div className="flex items-center gap-3 justify-center w-full">
+            {features.lessonEditor && currentUser?.permissions?.lessonEditor && (
+              <NavButton
+                active={activeTab === Tab.NEW_LESSON_EDITOR}
+                onClick={() => setActiveTab(Tab.NEW_LESSON_EDITOR)}
+                icon={<Edit3 size={18} />}
+                label="Lesson Edit"
+                color="text-blue-500"
               />
-              <p className="text-xl font-poppins text-slate-500 font-medium">
-                Em desenvolvimento...
-              </p>
-            </div>
-          )}
-          {activeTab === Tab.PODCASTS && (
-            <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-3xl p-8 shadow-xl border-4 border-indigo-100">
-              <img
-                src="sleeping_star.png"
-                alt="Em desenvolvimento"
-                className="h-64 w-auto mb-6"
+            )}
+            {features.piano && currentUser?.permissions?.piano && (
+              <NavButton
+                active={activeTab === Tab.PIANO}
+                onClick={() => setActiveTab(Tab.PIANO)}
+                icon={<Music size={18} />}
+                label="Piano"
+                color="text-pink-500"
               />
-              <p className="text-xl font-poppins text-slate-500 font-medium">
-                Em desenvolvimento...
-              </p>
+            )}
+            {features.lessonEditor && currentUser?.permissions?.lessonEditor && (
+              <NavButton
+                active={activeTab === Tab.OLD_LESSON_EDITOR}
+                onClick={() => setActiveTab(Tab.OLD_LESSON_EDITOR)}
+                icon={<Edit3 size={18} />}
+                label="Editor Aulas"
+                color="text-indigo-500"
+              />
+            )}
+            {features.guitar && currentUser?.permissions?.guitar && (
+              <NavButton
+                active={activeTab === Tab.GUITAR}
+                onClick={() => setActiveTab(Tab.GUITAR)}
+                icon={<Guitar size={18} />}
+                label="Violão"
+                color="text-orange-500"
+              />
+            )}
+            {features.cifra && currentUser?.permissions?.cifra && (
+              <NavButton
+                active={activeTab === Tab.CIFRA_CREATOR}
+                onClick={() => setActiveTab(Tab.CIFRA_CREATOR)}
+                icon={<FileText size={18} />}
+                label="Cifras"
+                color="text-yellow-500"
+              />
+            )}
+            {features.scales && currentUser?.permissions?.scales && (
+              <NavButton
+                active={activeTab === Tab.SCALES}
+                onClick={() => setActiveTab(Tab.SCALES)}
+                icon={<Music size={18} />}
+                label="Escalas"
+                color="text-green-500"
+              />
+            )}
+            {features.sheetMusic && currentUser?.permissions?.sheetMusic && (
+              <NavButton
+                active={activeTab === Tab.SHEET_MUSIC}
+                onClick={() => setActiveTab(Tab.SHEET_MUSIC)}
+                icon={<FileText size={18} />}
+                label="Partituras"
+                color="text-purple-500"
+              />
+            )}
+            {features.memoryGame && currentUser?.permissions?.memoryGame && (
+              <NavButton
+                active={activeTab === Tab.MEMORY_GAME}
+                onClick={() => setActiveTab(Tab.MEMORY_GAME)}
+                icon={<Gamepad2 size={18} />}
+                label="Memory Game"
+                color="text-red-500"
+              />
+            )}
+            {features.quiz && currentUser?.permissions?.quiz && (
+              <NavButton
+                active={activeTab === Tab.CHORD_QUIZ}
+                onClick={() => setActiveTab(Tab.CHORD_QUIZ)}
+                icon={<Gamepad2 size={18} />}
+                label="Quiz"
+                color="text-indigo-500"
+              />
+            )}
+            {features.idGenerator && currentUser?.permissions?.idGenerator && (
+              <NavButton
+                active={activeTab === Tab.ID_GENERATOR}
+                onClick={() => setActiveTab(Tab.ID_GENERATOR)}
+                icon={<User size={18} />}
+                label="Carteirinha"
+                color="text-cyan-500"
+              />
+            )}
+            {features.design && currentUser?.permissions?.design && (
+              <NavButton
+                active={activeTab === Tab.DESIGN}
+                onClick={() => setActiveTab(Tab.DESIGN)}
+                icon={<PenTool size={18} />}
+                label="Design"
+                color="text-teal-500"
+              />
+            )}
+            {features.podcasts && currentUser?.permissions?.podcasts && (
+              <NavButton
+                active={activeTab === Tab.PODCASTS}
+                onClick={() => setActiveTab(Tab.PODCASTS)}
+                icon={<Mic size={18} />}
+                label="Podcasts"
+                color="text-rose-500"
+              />
+            )}
+          </div>
+        </nav>
+
+        {/* User Profile / Admin Access */}
+        <div className="flex-none relative">
+          <button
+            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+            className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-slate-100 transition-colors"
+          >
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+              {currentUser ? currentUser.name.charAt(0).toUpperCase() : 'A'}
             </div>
+            <span className="text-sm font-bold text-slate-600 hidden md:block">
+              {currentUser ? currentUser.name : 'Usuário'}
+            </span>
+            <ChevronDown size={16} className={`text-slate-400 transition-transform hidden md:block ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* Dropdown Menu */}
+          {isProfileMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsProfileMenuOpen(false)}
+              />
+
+              {/* Menu */}
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-fade-in-up">
+                {/* User Info */}
+                <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 border-b border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
+                      {currentUser?.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-800 truncate">{currentUser?.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{currentUser?.email}</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-xs px-2 py-1 bg-white rounded-full text-slate-600 font-semibold">
+                      {currentUser?.instrumento}
+                    </span>
+                    {currentUser?.role === 'Admin' && (
+                      <span className="text-xs px-2 py-1 bg-purple-500 text-white rounded-full font-semibold">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Menu Items */}
+                <div className="p-2">
+                  {currentUser?.role === 'Admin' && (
+                    <button
+                      onClick={() => {
+                        setShowAdminDashboard(true);
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left text-slate-700 hover:bg-purple-50 rounded-xl transition-colors"
+                    >
+                      <User size={18} className="text-purple-500" />
+                      <span className="font-semibold">Moderador</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  >
+                    <LogOut size={18} />
+                    <span className="font-semibold">Sair</span>
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
+      </header>
+
+      {/* --- MOBILE MENU --- */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-white pt-24 px-6 lg:hidden overflow-y-auto">
+          <div className="flex flex-col gap-2">
+            {features.lessonEditor && currentUser?.permissions?.lessonEditor && <MobileNavButton active={activeTab === Tab.NEW_LESSON_EDITOR} onClick={() => { setActiveTab(Tab.NEW_LESSON_EDITOR); setIsMenuOpen(false); }} label="Lesson Edit" icon={<Edit3 size={20} />} />}
+            {features.piano && currentUser?.permissions?.piano && <MobileNavButton active={activeTab === Tab.PIANO} onClick={() => { setActiveTab(Tab.PIANO); setIsMenuOpen(false); }} label="Piano" icon={<Music size={20} />} />}
+            {features.lessonEditor && currentUser?.permissions?.lessonEditor && <MobileNavButton active={activeTab === Tab.OLD_LESSON_EDITOR} onClick={() => { setActiveTab(Tab.OLD_LESSON_EDITOR); setIsMenuOpen(false); }} label="Editor Aulas" icon={<Edit3 size={20} />} />}
+            {features.guitar && currentUser?.permissions?.guitar && <MobileNavButton active={activeTab === Tab.GUITAR} onClick={() => { setActiveTab(Tab.GUITAR); setIsMenuOpen(false); }} label="Violão" icon={<Guitar size={20} />} />}
+            {features.cifra && currentUser?.permissions?.cifra && <MobileNavButton active={activeTab === Tab.CIFRA_CREATOR} onClick={() => { setActiveTab(Tab.CIFRA_CREATOR); setIsMenuOpen(false); }} label="Cifras" icon={<FileText size={20} />} />}
+            {features.scales && currentUser?.permissions?.scales && <MobileNavButton active={activeTab === Tab.SCALES} onClick={() => { setActiveTab(Tab.SCALES); setIsMenuOpen(false); }} label="Escalas" icon={<Music size={20} />} />}
+            {features.sheetMusic && currentUser?.permissions?.sheetMusic && <MobileNavButton active={activeTab === Tab.SHEET_MUSIC} onClick={() => { setActiveTab(Tab.SHEET_MUSIC); setIsMenuOpen(false); }} label="Partituras" icon={<FileText size={20} />} />}
+            {features.memoryGame && currentUser?.permissions?.memoryGame && <MobileNavButton active={activeTab === Tab.MEMORY_GAME} onClick={() => { setActiveTab(Tab.MEMORY_GAME); setIsMenuOpen(false); }} label="Memory Game" icon={<Gamepad2 size={20} />} />}
+            {features.quiz && currentUser?.permissions?.quiz && <MobileNavButton active={activeTab === Tab.CHORD_QUIZ} onClick={() => { setActiveTab(Tab.CHORD_QUIZ); setIsMenuOpen(false); }} label="Quiz" icon={<Gamepad2 size={20} />} />}
+            {features.idGenerator && currentUser?.permissions?.idGenerator && <MobileNavButton active={activeTab === Tab.ID_GENERATOR} onClick={() => { setActiveTab(Tab.ID_GENERATOR); setIsMenuOpen(false); }} label="Carteirinha" icon={<User size={20} />} />}
+            {features.design && currentUser?.permissions?.design && <MobileNavButton active={activeTab === Tab.DESIGN} onClick={() => { setActiveTab(Tab.DESIGN); setIsMenuOpen(false); }} label="Design" icon={<PenTool size={20} />} />}
+            {features.podcasts && currentUser?.permissions?.podcasts && <MobileNavButton active={activeTab === Tab.PODCASTS} onClick={() => { setActiveTab(Tab.PODCASTS); setIsMenuOpen(false); }} label="Podcasts" icon={<Mic size={20} />} />}
+          </div>
+        </div>
+      )}
+
+      {/* --- MAIN CONTENT --- */}
+      <main className="flex-1 pt-28 relative z-0">
+        {activeTab === Tab.NEW_LESSON_EDITOR && (features.lessonEditor && currentUser?.permissions?.lessonEditor ? <NewLessonEditor /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+        {activeTab === Tab.PIANO && (features.piano && currentUser?.permissions?.piano ? <PianoGenerator /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+        {activeTab === Tab.GUITAR && (features.guitar && currentUser?.permissions?.guitar ? <GuitarGenerator /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+        {activeTab === Tab.SCALES && (features.scales && currentUser?.permissions?.scales ? <ScaleGenerator /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+        {activeTab === Tab.SHEET_MUSIC && (features.sheetMusic && currentUser?.permissions?.sheetMusic ? <SheetMusicGenerator /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+        {activeTab === Tab.OLD_LESSON_EDITOR && (features.lessonEditor && currentUser?.permissions?.lessonEditor ? <LessonEditor /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+        {activeTab === Tab.CIFRA_CREATOR && (features.cifra && currentUser?.permissions?.cifra ? <CifraCreator /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+
+        <Suspense fallback={<div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div></div>}>
+          {activeTab === Tab.ID_GENERATOR && (features.idGenerator && currentUser?.permissions?.idGenerator ? <IdGenerator /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+          {activeTab === Tab.CHORD_QUIZ && (features.quiz && currentUser?.permissions?.quiz ? <ChordQuiz /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+          {activeTab === Tab.MEMORY_GAME && (features.memoryGame && currentUser?.permissions?.memoryGame ? <MemoryGame /> : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+        </Suspense>
+
+        {activeTab === Tab.DESIGN && (features.design && currentUser?.permissions?.design ? (
+          <div className="flex items-center justify-center h-96 text-slate-400">
+            <div className="text-center">
+              <img src="/sleeping_star.png" alt="Em breve" className="mx-auto mb-4 h-64 w-auto object-contain" />
+              <h2 className="text-2xl font-bold">Design Studio</h2>
+              <p>Em breve...</p>
+            </div>
+          </div>
+        ) : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
+
+        {activeTab === Tab.PODCASTS && (features.podcasts && currentUser?.permissions?.podcasts ? (
+          <div className="flex items-center justify-center h-96 text-slate-400">
+            <div className="text-center">
+              <img src="/sleeping_star.png" alt="Em breve" className="mx-auto mb-4 h-64 w-auto object-contain" />
+              <h2 className="text-2xl font-bold">Starkids Podcast</h2>
+              <p>Em breve...</p>
+            </div>
+          </div>
+        ) : <div className="flex justify-center items-center h-full text-slate-400">Acesso restrito</div>)}
       </main>
+      <Footer />
     </div>
   );
 };
+
+const NavButton: React.FC<{ active: boolean, onClick: () => void, icon: React.ReactNode, label: string, color: string }> = ({ active, onClick, icon, label, color }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-6 py-3 rounded-full transition-all duration-300 transform ${active
+      ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 scale-105'
+      : 'text-slate-600 hover:bg-slate-100 hover:shadow-md hover:scale-102'
+      }`}
+  >
+    <div className="transition-all duration-300">
+      {icon}
+    </div>
+    <span className="text-sm font-semibold whitespace-nowrap">
+      {label}
+    </span>
+  </button>
+);
+
+const MobileNavButton: React.FC<{ active: boolean, onClick: () => void, label: string, icon: React.ReactNode }> = ({ active, onClick, label, icon }) => (
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center gap-4 p-4 rounded-xl transition-colors ${active ? 'bg-sky-50 text-sky-600 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
+  >
+    {icon}
+    <span>{label}</span>
+  </button>
+);
 
 export default App;

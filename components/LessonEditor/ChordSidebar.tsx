@@ -157,7 +157,7 @@ export const ChordSidebar: React.FC<ChordSidebarProps> = ({ onInsert }) => {
     };
 
     return (
-        <div className="w-full md:w-[320px] flex-shrink-0 bg-white/90 backdrop-blur-sm rounded-[30px] border-4 border-white shadow-xl p-6 flex flex-col gap-6 h-fit md:sticky md:top-24">
+        <div className="w-full md:w-[320px] flex-shrink-0 bg-white/90 backdrop-blur-sm rounded-[30px] border-4 border-white shadow-xl p-6 flex flex-col gap-6 h-fit md:sticky md:top-28">
             <h3 className="font-lobster text-3xl text-sky-500 text-center border-b-2 border-sky-100 pb-2">Inserir Acorde</h3>
             <div className="flex bg-sky-100 p-1.5 rounded-full shadow-inner">
                 <button onClick={() => setInstrument('piano')} className={`flex-1 py-2 px-2 rounded-full font-poppins font-semibold text-sm transition-all flex items-center justify-center gap-2 ${instrument === 'piano' ? 'bg-white text-sky-500 shadow-md scale-105' : 'text-gray-500 hover:text-sky-500'}`}>

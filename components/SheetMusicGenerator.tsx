@@ -31,8 +31,8 @@ interface ParsedNote {
 
 export const SheetMusicGenerator: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'editor' | 'guide'>('editor');
-  const [title, setTitle] = useState("Peixe Vivo");
-  const [notation, setNotation] = useState("C4/q D4/q E4/q F4/q G4/q A4/q B4/q C5/q\nC4/q D4/q E4/q F4/q G4/h E4/q C4/q\nR/q G4/q G4/8 F4/8 E4/q F4/q G4/q\nC5/q B4/q A4/q G4/q F4/q E4/q D4/q C4/q");
+  const [title, setTitle] = useState("");
+  const [notation, setNotation] = useState("");
   const [error, setError] = useState<string | null>(null);
   const scoreOutputRef = useRef<HTMLDivElement>(null);
 
@@ -225,7 +225,7 @@ export const SheetMusicGenerator: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-[#4fc3f7] to-[#0288d1] p-4 lg:p-8 rounded-3xl overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-[#4fc3f7] to-[#0288d1] p-4 lg:p-8 rounded-3xl">
 
       {/* Header */}
       <header className="shrink-0 w-full max-w-7xl mx-auto mb-6 flex justify-end items-center z-20 print:hidden">

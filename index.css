@@ -1,3 +1,10 @@
+/* CSS Variables for Theme */
+:root {
+  --color-primary: #0ea5e9;
+  --color-secondary: #8b5cf6;
+  --color-accent: #f59e0b;
+}
+
 /* Scrollbar hide utility */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -57,4 +64,148 @@
   opacity: 0.5;
   pointer-events: none;
   z-index: 0;
+}
+
+/* Starry background pattern - Now uses theme colors! */
+.bg-pattern {
+  /* Dynamic gradient using CSS variables */
+  background: linear-gradient(135deg,
+      var(--color-primary) 0%,
+      var(--color-primary) 50%,
+      var(--color-secondary) 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Layer 1: Main Stars */
+.bg-pattern::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle, white 2px, transparent 2.5px),
+    radial-gradient(circle, white 1.5px, transparent 2px),
+    radial-gradient(circle, white 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.8) 2px, transparent 3px),
+    radial-gradient(circle, white 0.5px, transparent 1px);
+  background-size:
+    350px 350px,
+    250px 250px,
+    150px 150px,
+    400px 400px,
+    100px 100px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px,
+    70px 100px,
+    20px 20px;
+  opacity: 1;
+  pointer-events: none;
+  z-index: 0;
+  animation: twinkle 3s ease-in-out infinite alternate;
+}
+
+/* Layer 2: Extra Dense Stars for "More Stars" effect */
+.bg-pattern::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle, white 1.2px, transparent 1.8px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.9) 0.8px, transparent 1.2px);
+  background-size:
+    200px 200px,
+    120px 120px;
+  background-position:
+    100px 50px,
+    30px 90px;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 0;
+  animation: twinkle 4s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes twinkle {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1.1);
+    text-shadow: 0 0 4px white;
+  }
+}
+
+/* No scrollbar for nav */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animations for Quiz */
+@keyframes pop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-pop {
+  animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* 3D Flip Utilities for Memory Game */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }

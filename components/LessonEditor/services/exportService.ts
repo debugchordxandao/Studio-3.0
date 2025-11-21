@@ -142,7 +142,7 @@ export const exportAsDOCX = async (editorId: string, fileName: string = 'aula-st
         asBlob(fullHtml, {
             orientation: 'portrait',
             margins: { top: 720, right: 720, bottom: 720, left: 720 }
-        }).then((blob: Blob | MediaSource) => {
+        }).then((blob: any) => {
             downloadFile(blob as Blob, fileName);
         });
     } catch (e) {

@@ -7,9 +7,13 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+import { AdminProvider } from './components/Admin/AdminContext';
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+    <AdminProvider>
+      <App />
+    </AdminProvider>
+  </React.StrictMode>
 );

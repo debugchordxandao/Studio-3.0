@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { STARKIDS_LOGO_URL } from "../constants";
 
 interface LoginProps {
-  onLogin: () => void;
+  onLogin: (isAdmin: boolean) => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
@@ -13,7 +13,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === "Alexandre" && password === "0101") {
-      onLogin();
+      onLogin(false);
+    } else if (username === "Alexandre" && password === "0202") {
+      onLogin(true);
     } else {
       setError("Credenciais inválidas. Tente novamente.");
     }

@@ -7,6 +7,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Starkids Studio - Xandão Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              starkids: {
+                purple: '#8a2be2',
+                blue: '#039be5',
+                salmon: '#e57373',
+                green: '#43a047',
+                yellow: '#fdd835',
+                darkBlue: '#01579b',
+                orange: '#fb8c00',
+              },
+              skyStart: '#29b6f6',
+              skyEnd: '#01579b',
+            },
+            fontFamily: {
+              lobster: ['Lobster', 'cursive'],
+              poppins: ['Poppins', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
       body {

@@ -132,8 +132,8 @@ export const exportAsDOCX = (editorId: string, fileName: string = 'aula-starkids
     asBlob(fullHtml, {
       orientation: 'portrait',
       margins: { top: 720, right: 720, bottom: 720, left: 720 }
-    }).then((blob: any) => {
-      downloadFile(blob as Blob, fileName);
+    }).then((blob: Blob) => {
+      downloadFile(blob, fileName);
     });
   } catch (e) {
     console.error(e);

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Starkids Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              skyStart: '#e3f2fd',
+              skyEnd: '#90caf9',
+              starkids: {
+                purple: '#8a2be2',
+                blue: '#039be5',
+                darkBlue: '#0277bd',
+                lightBlue: '#81d4fa',
+                salmon: '#e57373',
+                green: '#43a047',
+                yellow: '#fdd835',
+                orange: '#fb8c00', // Using the specific orange from reference
+                orangeShadow: '#f57c00',
+                red: '#d32f2f',
+              }
+            },
+            fontFamily: {
+              lobster: ['Lobster', 'cursive'],
+              poppins: ['Poppins', 'sans-serif'],
+            },
+            boxShadow: {
+              'starkid': '0 4px 0',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      /* Custom scrollbar for better aesthetics */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #e3f2fd;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #90caf9;
+        border-radius: 5px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #039be5;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-gradient-to-b from-skyStart to-skyEnd min-h-screen text-gray-800">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
